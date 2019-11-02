@@ -13,7 +13,7 @@ import xlsxwriter
 def get_direct(external, employee_type, employee_class,l_global_id):
     try:
         if external != 'Yes' and employee_class == 'Direct' and employee_type not in ["Intern/Students","Apprentice","Vacation Workers D",""]:
-            return 1
+            return 4
         else:
             return 0
     except Exception as e:
@@ -172,7 +172,7 @@ def head_count_summary(df_data,file_out):
 if __name__ == '__main__':
     df_data = pd.DataFrame()
     now_date = date.today().strftime("%Y%m%d")
-    file_in = 'EmployeeHeadcount-Page1-20190927.xlsx'
+    file_in = 'EmployeeHeadcount-Page1-20190930-chn.xlsx'
     file_out = 'Output_'+ now_date+ '_headcout_output.xlsx'
     time1 = time.time()
 

@@ -23,7 +23,7 @@ df = DataFrame()
 df2 = DataFrame()
 #open the target file, if not exist, create new one
 now_date = date.today().strftime("%Y%m%d")
-file2 = root_dir + '/t1_result_'+now_date+'.csv'
+file2 = output_root + '/t1_result_'+now_date+'.csv'
 for filename in filenames:
     if filename.startswith('CDP'):
         filepath = root_dir+'/'+filename
