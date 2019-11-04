@@ -3,7 +3,7 @@
 This is a script to read files and updated as pdf files.
 """
 
-from os import chdir, listdir
+from os import listdir
 from datetime import date
 import time
 import datetime
