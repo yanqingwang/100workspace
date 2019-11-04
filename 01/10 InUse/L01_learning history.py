@@ -136,7 +136,11 @@ def gen_pdf_from_xlsx(df_data):
             workbook.close()
             df_writer.save()
             df_writer.close()
+        except Exception as e:
+            print('write file failed:', file_out)
+            print('error log', e)
 
+        try:
             path = 'C:/temp/pdf/'
             file_pdf = path + 'p' + str(gid) + '.pdf'
             if os.access(file_pdf, os.F_OK):
@@ -145,10 +149,10 @@ def gen_pdf_from_xlsx(df_data):
             books.ExportAsFixedFormat(0, file_pdf)  #0 is pdf,1 is xps
             books.Close(False)
             print('Save PDF Files：', file_pdf)
-
         except Exception as e:
-            print('write file failed:', file_out)
+            print('Get PDF file failed:', file_pdf)
             print('error log', e)
+
 
     xlApp.Quit()
 
