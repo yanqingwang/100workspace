@@ -64,7 +64,7 @@ def compare_detail(root_dir, line_columns,filename_old,filename_new):
     # df_handling = df_new.head(0)
 
     personlist_old = df_old[u'Person Id'].tolist()
-    personlist_new = df_new[u'ZF Global ID'].tolist()
+    personlist_new = df_new[u'10ZF Global ID'].tolist()
     # print(df_old['Person Id'].tolist())
     # df_old.set_index(['Person Id','Reporting Unit ID'])
 
@@ -88,14 +88,14 @@ def compare_detail(root_dir, line_columns,filename_old,filename_new):
         change_ru = 0
 
         if n_idx % 200 == 0:
-            print('new file', n_idx, n_row['ZF Global ID'])
+            print('new file', n_idx, n_row['10ZF Global ID'])
 
 
-        if not n_row['ZF Global ID'] in personlist_old: # New hire
+        if not n_row['10ZF Global ID'] in personlist_old: # New hire
             n_row['Status'] = 'New Hire'
             df_handling = df_handling.append(pd.Series(n_row),sort=False)
 
-            line_rs = {'RU':n_row['Reporting Unit (Reporting Unit ID)'],'Person Id':n_row['ZF Global ID'],'New':1}
+            line_rs = {'RU':n_row['Reporting Unit (Reporting Unit ID)'],'Person Id':n_row['10ZF Global ID'],'New':1}
             # Global variant
             line_rs['Headcount'] = 1
             if n_row['External Agency Worker'] == 'Yes':
@@ -104,17 +104,17 @@ def compare_detail(root_dir, line_columns,filename_old,filename_new):
             line_rs['Last Name'] = n_row['Last Name']
             df_res = df_res.append(pd.Series(line_rs),ignore_index=True)
 
-        elif n_row['ZF Global ID'] in personlist_old:   # change
+        elif n_row['10ZF Global ID'] in personlist_old:   # change
             n_row['Status'] = 'Change'
             df_handling = df_handling.append(pd.Series(n_row),sort=False)
-            line_rs = {'RU':n_row['Reporting Unit (Reporting Unit ID)'],'Person Id':n_row['ZF Global ID']}
+            line_rs = {'RU':n_row['Reporting Unit (Reporting Unit ID)'],'Person Id':n_row['10ZF Global ID']}
             # Global variant
             line_rs['Headcount'] = 1
             if n_row['External Agency Worker'] == 'Yes':
                 line_rs['External_Agency'] = 1
 
             # print(n_row['Person Id'],'change comparing')
-            df_o=df_old[df_old['Person Id']==n_row['ZF Global ID']]       #拿到符合条件的记录,dataFrame
+            df_o=df_old[df_old['Person Id']==n_row['10ZF Global ID']]       #拿到符合条件的记录,dataFrame
             # print(type(df_o))
             # print(df_o)
             o_row = pd.Series(df_o.iloc[0])                   #获取行数据
@@ -184,7 +184,7 @@ def compare_detail(root_dir, line_columns,filename_old,filename_new):
                 if str(n_row['Location (Name)']).upper() != str(list_location[1]).upper():
                     change_jobinformation = change_jobinformation + 1
             except Exception as e:
-                print('split location error','Global ID',n_row['ZF Global ID'],'Location',o_row['Location'])
+                print('split location error','Global ID',n_row['10ZF Global ID'],'Location',o_row['Location'])
             re_ncc = re.sub(r"\b0*([0-z][0-z]*|0)", r"\1", str(n_row['Cost Centre (Label)']))
             re_occ = re.sub(r"\b0*([0-z][0-z]*|0)", r"\1", str(o_row['Cost Center Cost Center']))
             if re_ncc != re_occ:        #需要去掉前置0, cost center
@@ -242,7 +242,7 @@ def compare_detail(root_dir, line_columns,filename_old,filename_new):
         if not o_row['Person Id'] in personlist_new:  # Termination
             n_row['Status'] = 'Termination'
             n_row['Reporting Unit (Reporting Unit ID)'] = o_row['Reporting Unit ID']
-            n_row['ZF Global ID'] = o_row['Person Id']
+            n_row['10ZF Global ID'] = o_row['Person Id']
             df_handling = df_handling.append(pd.Series(n_row),sort=False)
             line_rs = {'RU':o_row['Reporting Unit ID'],'Person Id':o_row['Person Id'],'Headcount':0,'Termination':1}
             line_rs['First Name'] = o_row['First Name']

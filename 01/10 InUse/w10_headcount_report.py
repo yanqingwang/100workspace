@@ -86,8 +86,8 @@ def pre_process(input):
         df['VacationWorker'] = df.apply((lambda x: 1 if x['Employment Type (Label)'] == 'Vacation Workers DE' else 0 ),axis=1)
 
         df['AP'] = df.apply(lambda x:get_region(x['Country (ID)']),axis=1)
-        df['EEDirect'] = df.apply(lambda x:get_direct(x['External_worker'],x['Employment Type (Label)'],x['Employee Class (Label)'],x['ZF Global ID']),axis=1)
-        df['EEIndirect'] = df.apply(lambda x:get_indirect(x['External_worker'],x['Employment Type (Label)'],x['Employee Class (Label)'],x['ZF Global ID']),axis=1)
+        df['EEDirect'] = df.apply(lambda x:get_direct(x['External_worker'],x['Employment Type (Label)'],x['Employee Class (Label)'],x['10ZF Global ID']),axis=1)
+        df['EEIndirect'] = df.apply(lambda x:get_indirect(x['External_worker'],x['Employment Type (Label)'],x['Employee Class (Label)'],x['10ZF Global ID']),axis=1)
         # df['External'] = df.apply(lambda x:get_hire_chg(x['External Agency & Contingent Worker'],x['Event Reason Icode (Label)']),axis=1)
 
     except Exception as e:

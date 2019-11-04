@@ -24,7 +24,7 @@ df2 = pd.DataFrame()
 now_date = date.today().strftime("%Y%m%d")
 file2 = root_dir + '/t1_result_'+now_date+'.csv'
 for filename in filenames:
-    if filename.startswith('ZF'):
+    if filename.startswith('10ZF'):
         filepath = root_dir+'/'+filename
         #for all files, read and process
         try:

@@ -114,8 +114,8 @@ def simple_analyze(df_data,file_out):
     df_datagroup = pd.DataFrame()
     line_rs = {}
     df_simple = df_data.groupby(['Country (ID)','Company (Label)','Employee Status (Label)','Board Short Text','Division Short Text','BU Short Text','Department Short Text','Reporting Unit (Reporting Unit ID)','Employment Type (Label)','Location Group (Name)','Job Classification (Job Code)',
-                                 'ServiceYear'])['ZF Global ID'].count().reset_index()
-    # df_simple = df_data.groupby(['Country (ID)','Company (Label)','Board Short Text','Division Short Text','BU Short Text','Employment Type (Label)','Job Classification (Job Code)','AgeRange'])['ZF Global ID'].count().reset_index()
+                                 'ServiceYear'])['10ZF Global ID'].count().reset_index()
+    # df_simple = df_data.groupby(['Country (ID)','Company (Label)','Board Short Text','Division Short Text','BU Short Text','Employment Type (Label)','Job Classification (Job Code)','AgeRange'])['10ZF Global ID'].count().reset_index()
     print('df_simple:','columns',df_simple.shape[0],'\n',df_simple.head(2))
 
     # get detail data
@@ -132,8 +132,8 @@ def simple_analyze(df_data,file_out):
         line_rs['Location'] = n_row['Location Group (Name)']
         line_rs['Job'] = n_row['Job Classification (Job Code)']
         line_rs['Status'] = n_row['Employee Status (Label)']
-        line_rs[n_row['ServiceYear']] = n_row['ZF Global ID']
-        line_rs['EMP_NO'] = n_row['ZF Global ID']
+        line_rs[n_row['ServiceYear']] = n_row['10ZF Global ID']
+        line_rs['EMP_NO'] = n_row['10ZF Global ID']
         df_simple_T = df_simple_T.append(pd.Series(line_rs),ignore_index=True)
 
         # line_rs[n_row['EventReason']] = n_row['GlobalID']

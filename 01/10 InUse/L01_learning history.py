@@ -13,13 +13,24 @@ import os
 
 from win32com.client import gencache, DispatchEx
 
-def get_path():
-    return 'c:/Users/z659190/Documents/10 Work/10 MyHRSuit/10 Project/131 learning/30_Workpackages/37 Data migration/1st Submission/'
+def prepare_path():
+    print(os.path.abspath('..'))
+    root = os.path.abspath('..') + '/testdata/learning/'
+    if not os.path.exists(root):
+        os.mkdir(root)
+    tmp_path = root + 'rs'
+    if not os.path.exists(tmp_path):
+        os.mkdir(tmp_path)
 
+
+def get_path():
+    root = os.path.abspath('..') + '/testdata/learning/'
+    print(root)
+    return  root
 
 def set_columns():
-    return ['Global ID','Local ID', 'Learner Name', 'Item/ Program Name','Training Hours','Item Type','Start Date','End Date',
-                           'Completion date','Expiration Date for Certifications','Vendor/ Instructor','Comments/ Remarks']
+    return ['Global ID','Local ID', 'Learner Name', 'Item/ Program Name','Training Hours','Start Date','End Date',
+                           'Vendor/ Instructor','Comments/ Remarks']
 
 def get_str_date(l_date):
     if len(str(l_date)) > 10:
@@ -95,7 +106,7 @@ def gen_pdf_from_xlsx(df_data):
 
         df_temp = df_data[df_data['Global ID'] == gid]
         try:
-            filename = get_path() + 'xlsx_tmp/p' + str(gid) + '.xlsx'
+            filename = get_path() + 'rs/p' + str(gid) + '.xlsx'
             # 创建一个excel
             df_writer = pd.ExcelWriter(filename, engine='xlsxwriter',date_format='yyyy-mm-dd')
             workbook = df_writer.book
@@ -120,11 +131,8 @@ def gen_pdf_from_xlsx(df_data):
             worksheet.set_column("B:B",10, cell_format=common_format)
             worksheet.set_column("D:D",32, cell_format=common_format)
             worksheet.set_column("E:E",6, cell_format=common_format)
-            worksheet.set_column("F:F",10, cell_format=common_format)
-            worksheet.set_column("G:H",12, cell_format=common_format)
-            worksheet.set_column("I:J",10, cell_format=common_format)
-            worksheet.set_column("K:K",16, cell_format=common_format)
-            worksheet.set_column("L:L",16, cell_format=common_format)
+            worksheet.set_column("F:G",12, cell_format=common_format)
+            worksheet.set_column("H:I",16, cell_format=common_format)
 
 
             worksheet.set_paper(9)      #https://xlsxwriter.readthedocs.io/page_setup.html
@@ -141,7 +149,7 @@ def gen_pdf_from_xlsx(df_data):
             print('error log', e)
 
         try:
-            path = 'C:/temp/pdf/'
+            path = get_path() + '/rs/'
             file_pdf = path + 'p' + str(gid) + '.pdf'
             if os.access(file_pdf, os.F_OK):
                 os.remove(file_pdf)
@@ -163,7 +171,8 @@ if __name__ == '__main__':
     file_out = 'Output_' + now_date + '_Learning_history_data.xlsx'
     time1 = time.time()
 
-    chdir(get_path())
+    prepare_path()
+    # chdir(get_path())
 
     df_data = read_file()
     output_data(df_data, file_out)

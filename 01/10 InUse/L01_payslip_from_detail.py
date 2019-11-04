@@ -72,6 +72,8 @@ def gen_pdf_from_xlsx(df_data,df_conf):
     list_globalid = list(set(df_data['ID'].to_list()))
     print(list_globalid)
 
+    file_out = get_path() + 'failed_overview.xlsx'
+
     xlApp = DispatchEx("Excel.Application")
     xlApp.Visible = False
     xlApp.DisplayAlerts = 0
