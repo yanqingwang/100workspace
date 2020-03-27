@@ -1,7 +1,0 @@
-1. W10_headcount_report, input is the headcount report, and output is the headcount summary based on region, country, company, and reporting unit.
-   The workspace is under temp/10headcount folder
-
-2. t4_change_values_auto_group_v2.py is used to compare the data. The input are 2 employee data (ap version) files, and the output is a summary file.
-   The configuration file is t4_auto_group.conf, and another excel file with name: t4_Fields_Group.xlsx
-
-3. t4_read_authorization_user.py 将人员从列表转为行表。输入为权限表，输出为每个角色人员。
