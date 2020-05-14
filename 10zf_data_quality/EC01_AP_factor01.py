@@ -2,6 +2,12 @@
 """
 age range / hire / termination /
 @author: Z659190
+Headcount
+Emails & ZID
+Managers & HR BP
+Entry Date
+Under 18 Employees
+
 """
 
 from datetime import date
@@ -19,7 +25,7 @@ class ApFactorData(object):
                         'PH':'PHL','SG':'SGP','TW':'TWN','TH':'THA','AE':'ARE','VN':'VNM'}
         self.division = ['A','B','C','E','I','P','R','T','U','Z']
         self.root = 'c:/temp/Quality/'
-        self.empfile = 'AP_EmployeeBasicInfov2light-20200331-Gender.xlsx'
+        self.empfile = 'AP_EmployeeBasicInfov2light-20200430.xlsx'
         self.bcs_data = 'DataQualityReport_2020_03.xlsm'
         self.now_date = date.today().strftime("%Y%m%d")
         self.result = defaultdict(dict)
@@ -334,7 +340,7 @@ class ApFactorData(object):
 
             df['DATE_CHK'] = df.apply(lambda x: self.check_date(x['Hire Date'],x['Original Start Date']), axis=1)
             df['Seniority_DATE_CHK'] = df.apply(lambda x: self.check_seniority_date(x['Hire Date'],x['Original Start Date'],x['Seniority Start Date']), axis=1)
-            df['AGE_RANGE'] = df.apply(lambda x: self.get_age_range(x['Date Of Birth']), axis=1)
+            df['AGE_RANGE'] = df.apply(lambda x: self.get_age_range(x['Date Of Birth'],), axis=1)
             df['AgeLess18'] = df.apply(lambda x: 1 if (x['AGE_RANGE'] == '0--18' or x['AGE_RANGE'] == 'Unkown' or x['AGE_RANGE'] == '80+') else 0, axis=1)
             df['EMAIL_ZID_CHK'] = df.apply(lambda x: self.check_email_zid(x['email_check'],x['ZID_check']), axis=1)
 
@@ -758,12 +764,12 @@ class ApFactorData(object):
                     worksheet_h = df_writer.sheets[sheet_name]
                     worksheet_h.set_column("J:K", width=18, cell_format=self.date_value_format)
 
-                df_s_div_entry_date = df_s_entry_date[df_s_entry_date[field] == lv_value]
-                if not df_s_div_entry_date.empty:
-                    sheet_name = '160_SeniorityDate'
-                    df_s_div_entry_date.to_excel(df_writer, sheet_name=sheet_name, encoding="utf-8", index=False)
-                    # worksheet_h = df_writer.sheets[sheet_name]
-                    # worksheet_h.set_column("J:K", width=18, cell_format=self.date_value_format)
+                # df_s_div_entry_date = df_s_entry_date[df_s_entry_date[field] == lv_value]
+                # if not df_s_div_entry_date.empty:
+                #     sheet_name = '160_SeniorityDate'
+                #     df_s_div_entry_date.to_excel(df_writer, sheet_name=sheet_name, encoding="utf-8", index=False)
+                #     # worksheet_h = df_writer.sheets[sheet_name]
+                #     # worksheet_h.set_column("J:K", width=18, cell_format=self.date_value_format)
 
                 df_div_age = df_age18[df_age18[field] == lv_value]
                 if not df_div_age.empty:

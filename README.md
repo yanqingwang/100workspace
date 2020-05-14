@@ -4,10 +4,8 @@ Most of them are script which  is used in HR function in my daily work.
 The required packages are xlsxwriter, pandas.
 2. L01_payslip_from_detail.py is used to generate payslip in excel and pdf. The format can be configured in the excel files, and the pay items will be removed if there is no value exist.
 The required packages are xlsxwriter, pandas.
-
-
-1. W10_headcount_report, input is the headcount report, and output is the headcount summary based on region, country, company, and reporting unit.
-   The workspace is under temp/10headcount folder
+3. W10_headcount_report, input is the headcount report, and output is the headcount summary based on region, country, company, and reporting unit.
+   The workspace is under ../testdata/10headcount folder, and the filename must be start with Input, case sensitive
 
 2. t4_change_values_auto_group_v2.py is used to compare the data. The input are 2 employee data (ap version) files, and the output is a summary file.
    The configuration file is t4_auto_group.conf, and another excel file with name: t4_Fields_Group.xlsx
