@@ -91,7 +91,7 @@ class AnalyzeTimeObj(object):
 
             lv_row = lv_row + 20
             pivot_df1 = pd.pivot_table(df1,index=['Country'],columns=['NewHP'],
-                                       values=[lv_fieldname],aggfunc='count').reset_index()
+                                       values=[lv_fieldname],aggfunc='count',margins=True).reset_index()
             # print(pivot_df1.head(2))
             pivot_df1.to_excel(self.df_writer, sheet_name=sheet_name, encoding="utf-8",startrow=lv_row)
 
@@ -107,7 +107,7 @@ class AnalyzeTimeObj(object):
 
             lv_row = lv_row + 10
             pivot_df1 = pd.pivot_table(df1,index=['Employment Type (Label)'],columns=['NewHP'],
-                                       values=[lv_fieldname],aggfunc='count').reset_index()
+                                       values=[lv_fieldname],aggfunc='count',margins=True).reset_index()
             pivot_df1.to_excel(self.df_writer, sheet_name=sheet_name, encoding="utf-8",startrow=lv_row)
 
             lv_row = lv_row + 20

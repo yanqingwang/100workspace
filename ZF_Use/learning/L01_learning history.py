@@ -9,7 +9,7 @@ import datetime
 import pandas as pd
 import xlsxwriter
 import os
-import PyPDF4
+# import PyPDF4
 
 from win32com.client import gencache, DispatchEx
 
