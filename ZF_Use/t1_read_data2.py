@@ -6,7 +6,6 @@ Created on Sun Mar  3 11:05:58 2019
 
 from os import chdir,listdir
 from datetime import date
-from time import sleep
 from pandas import DataFrame
 from pandas import read_csv
 

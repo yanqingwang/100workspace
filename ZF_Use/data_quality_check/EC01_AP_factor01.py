@@ -171,9 +171,9 @@ class ApFactorData(object):
             print('error log', e)
             return 1        # error occurs
 
-    def check_email_zid(self,email, zid):
+    def check_email_zid(self,flag_email, flag_zid):
         try:
-            if email > 0 and zid > 0:    #hire date earlier than group date,  return error
+            if flag_email > 0 and flag_zid > 0:    #hire date earlier than group date,  return error
                 return 1
             else:
                 return 0

@@ -14,7 +14,7 @@ China employees have national ID
 
 """
 
-from ZF_Use.ZFlib import KPI_Cal
+from ZFlib import KPI_Cal
 
 from datetime import date
 import time
@@ -28,10 +28,10 @@ class ApFactorData(object):
     def __init__(self):
         self.country = {"AU":"AUS","CN":"CHN",'ID':'IDN','JP':'JPN','KR':"KOR",'MY':'MYS',
                         'PH':'PHL','SG':'SGP','TW':'TWN','TH':'THA','AE':'ARE','VN':'VNM'}
-        self.division = ['A','B','C','E','I','P','R','T','U','Z']
+        self.division = ['A','B','C','E','I','P','R','T','U','Z','W']
         self.root = 'c:/temp/Quality/'
-        self.empfile = 'AP_EmployeeBasicInfov2light-20200430-2.xlsx'
-        self.bcs_data = 'DataQualityReport_2020_04.xlsm'
+        self.empfile = 'AP_EmployeeBasicInfov2light-20200731.xlsx'
+        self.bcs_data = 'DataQualityReport_2020_06.xlsm'
         self.now_date = date.today().strftime("%Y%m%d")
         self.result = defaultdict(dict)
 
@@ -378,6 +378,7 @@ class ApFactorData(object):
             df['email_check'] = df.apply(lambda x:self.check_email(x['Business email address']),axis=1)
             df['ZID_check'] = df.apply(lambda x:self.check_ZID(x['EEIndirect'],x['ZID']),axis=1)
 
+            # only considering the employee, exclude external agency worker
             df['SM_Chck'] = df.apply((lambda x: 1 if (not pd.isnull(x['Solid Line Manager (Last Name)']) and x['EEtotal'] == 1)  else 0), axis=1)
             df['IM_Chck'] = df.apply((lambda x: 1 if (not pd.isnull(x['In-country Manager Last Name']) and x['EEtotal'] == 1) else 0), axis=1)
             df['BP_Chck'] = df.apply((lambda x: 1 if (not pd.isnull(x['BP Last Name']) and x['EEtotal'] == 1)  else 0), axis=1)
@@ -413,8 +414,8 @@ class ApFactorData(object):
     def out_mails(self, df_data, df_writer, workbook,sheet_name,common_format):
         emails_ap = pd.DataFrame()
 
-        emails_ap = df_data.groupby(['DIV'])[
-            'Total_EMP', 'email_check','EMAIL_ZID_CHK', 'EEIndirect', 'ID_email_check' ].sum().reset_index()
+        emails_ap = df_data.groupby(['DIV'])[[
+            'Total_EMP', 'email_check','EMAIL_ZID_CHK', 'EEIndirect', 'ID_email_check' ]].sum().reset_index()
 
         emails_ap = emails_ap.rename(columns={"email_check": "Employee_with_Emails",
                                 })
@@ -465,8 +466,8 @@ class ApFactorData(object):
         worksheet.insert_chart(8, 2, chart2, {'x_offset': 50, 'y_offset': 100})
 
     def out_chart(self, df_data, df_writer, workbook, chart2, sheet_name, title, xtitle, ytitle):
-        df_headcount_ana = df_data.groupby(['DIV'])[
-            'BCS_EMPs', 'SF_EMPs', 'GAPS_EMP', 'ABS_GAPS_EMP'].sum().reset_index()
+        df_headcount_ana = df_data.groupby(['DIV'])[[
+            'BCS_EMPs', 'SF_EMPs', 'GAPS_EMP', 'ABS_GAPS_EMP']].sum().reset_index()
         df_headcount_ana.to_excel(df_writer, sheet_name=sheet_name, encoding="utf-8", index=False)
         worksheet = df_writer.sheets[sheet_name]
         x, y = df_headcount_ana.shape
@@ -516,13 +517,13 @@ class ApFactorData(object):
 
 
     def overall_data(self,df_data, df_writer, workbook,sheet_name):
-        df_emp_rs = df_data.groupby(['Country (ID)','DIV','RU'])['Total_EMP','email_check','ZID_check','SM_Chck','IM_Chck','BP_Chck','EMAIL_ZID_CHK','DATE_CHK',
-                                    'EEIndirect','ID_email_check'].sum().reset_index()
+        df_emp_rs = df_data.groupby(['Country (ID)','DIV','RU'])[['Total_EMP','email_check','ZID_check','SM_Chck','IM_Chck','BP_Chck','EMAIL_ZID_CHK','DATE_CHK',
+                                    'EEIndirect','ID_email_check']].sum().reset_index()
         df_emp_rs.to_excel(df_writer, sheet_name=sheet_name, encoding="utf-8", index=False)
 
         sheet_name_new = sheet_name + '_div'
-        df_emp_rs_div = df_data.groupby(['DIV'])['Total_EMP','email_check','ZID_check','SM_Chck','IM_Chck','BP_Chck','EMAIL_ZID_CHK','DATE_CHK',
-                                    'EEIndirect','ID_email_check'].sum().reset_index()
+        df_emp_rs_div = df_data.groupby(['DIV'])[['Total_EMP','email_check','ZID_check','SM_Chck','IM_Chck','BP_Chck','EMAIL_ZID_CHK','DATE_CHK',
+                                    'EEIndirect','ID_email_check']].sum().reset_index()
         df_emp_rs_div['Email_Rate'] = df_emp_rs_div.apply(lambda x: x['email_check'] / x['Total_EMP'], axis=1)
         df_emp_rs_div['ID_Email_Rate'] = df_emp_rs_div.apply(lambda x: x['ID_email_check'] / x['EEIndirect'], axis=1)
         df_emp_rs_div['SM_GAP'] = df_emp_rs_div.apply(lambda x: x['Total_EMP'] - x['SM_Chck'], axis=1)
@@ -571,9 +572,9 @@ class ApFactorData(object):
         worksheet.insert_chart(8, 2, chart2, {'x_offset': 50, 'y_offset': 100})
 
     def pre_handle_data(self,df_data_tmp,key_field):
-        df_cnt = df_data_tmp.groupby(key_field)['Total_EMP', 'EETotal', 'BCS_EMPs', 'SF_EMPs',
+        df_cnt = df_data_tmp.groupby(key_field)[['Total_EMP', 'EETotal', 'BCS_EMPs', 'SF_EMPs',
                                                    'SM_Chck', 'IM_Chck', 'BP_Chck', 'Job_Chck', 'Cost_Chck', 'Normal_age',
-                                                   'Citizenship', 'NationalID_CHK'].sum()
+                                                   'Citizenship', 'NationalID_CHK']].sum()
 
         df_cnt['HD_RATE'] = df_cnt.apply(lambda x: KPI_Cal.headcnt_rate(x['BCS_EMPs'], x['SF_EMPs']), axis=1)
         df_cnt['SM_RATE'] = df_cnt.apply(lambda x: KPI_Cal.nm_rate(x['SM_Chck'], x['EETotal']), axis=1)
@@ -606,7 +607,7 @@ class ApFactorData(object):
             df_writer = pd.ExcelWriter(self.root + file_name, engine='xlsxwriter')
             workbook = df_writer.book
             common_format = workbook.add_format(
-                {'align': 'right', 'valign': 'vcenter', 'num_format': "0.00%"})
+                {'align': 'right', 'valign': 'vcenter', 'num_format': "0.0"})
 
             sheet_name = '00_Base'
             df_data.to_excel(df_writer, sheet_name=sheet_name, encoding="utf-8", index=False)
@@ -667,9 +668,9 @@ class ApFactorData(object):
         df_age_raw = pd.DataFrame()
         df_mail_zid_raw = pd.DataFrame()
 
-        df_overview = df_res.groupby(['Country (ID)', 'Company (Label)','DIV' , 'RU'])['Total_EMP','BCS_EMPs','SF_EMPs','EETotal','EEIndirect'].sum().reset_index()
+        df_overview = df_res.groupby(['Country (ID)', 'Company (Label)','DIV' , 'RU'])[['Total_EMP','BCS_EMPs','SF_EMPs','EETotal','EEIndirect']].sum().reset_index()
 
-        df_hd_raw = df_res.groupby(['Country (ID)', 'Company (Label)','DIV' , 'RU'])['BCS_EMPs','SF_EMPs','GAPS_EMP','ABS_GAPS_EMP'].sum().reset_index()
+        df_hd_raw = df_res.groupby(['Country (ID)', 'Company (Label)','DIV' , 'RU'])[['BCS_EMPs','SF_EMPs','GAPS_EMP','ABS_GAPS_EMP']].sum().reset_index()
         df_hd_raw['HD_GAP_RATE'] = df_hd_raw.apply(lambda x: 0 if x['BCS_EMPs'] < 1 else round(x['ABS_GAPS_EMP'] / x['BCS_EMPs'],3), axis=1)
         df_hd_raw.sort_values(by = ["ABS_GAPS_EMP"], ascending=[False], inplace=True)
 
@@ -772,20 +773,20 @@ class ApFactorData(object):
 
         df_hd_div = pd.DataFrame()
         print('Prepare RAW Data by Division ----------------------------------------------------')
-        df_hd_div = df_res.groupby(['DIV' ])['Total_EMP','BCS_EMPs','SF_EMPs','GAPS_EMP','ABS_GAPS_EMP'].sum().reset_index()
+        df_hd_div = df_res.groupby(['DIV' ])[['Total_EMP','BCS_EMPs','SF_EMPs','GAPS_EMP','ABS_GAPS_EMP']].sum().reset_index()
         df_hd_div['HD_GAP_RATE'] = df_hd_div.apply(lambda x: 0 if x['BCS_EMPs'] < 1 else round(x['ABS_GAPS_EMP'] / x['BCS_EMPs'],3), axis=1)
         df_hd_div.sort_values(by = ["ABS_GAPS_EMP"], ascending=[False], inplace=True)
         self.out_raw_data('/DIV/','DIV',self.division,df_hd_div,df_sm_raw,df_im_raw,df_bp_raw,df_job_raw,df_cost_raw,df_id_raw,df_age_raw,df_mail_zid_raw)
 
         print('Prepare RAW Data by Country ----------------------------------------------------')
-        df_hd_div = df_res.groupby(['Country (ID)'])['Total_EMP','BCS_EMPs','SF_EMPs','GAPS_EMP','ABS_GAPS_EMP'].sum().reset_index()
+        df_hd_div = df_res.groupby(['Country (ID)'])[['Total_EMP','BCS_EMPs','SF_EMPs','GAPS_EMP','ABS_GAPS_EMP']].sum().reset_index()
         df_hd_div['HD_GAP_RATE'] = df_hd_div.apply(lambda x: 0 if x['BCS_EMPs'] < 1 else round(x['ABS_GAPS_EMP'] / x['BCS_EMPs'],3), axis=1)
         df_hd_div.sort_values(by = ["ABS_GAPS_EMP"], ascending=[False], inplace=True)
         list_cnt = list(set(df_res['Country (ID)'].tolist()))
         self.out_raw_data('/CNT/','Country (ID)',list_cnt, df_hd_div,df_sm_raw,df_im_raw,df_bp_raw,df_job_raw,df_cost_raw,df_id_raw,df_age_raw,df_mail_zid_raw)
 
         print('Prepare RAW Data by Legal Entity ----------------------------------------------------')
-        df_hd_div = df_res.groupby(['Country (ID)', 'Company (Label)' ])['Total_EMP','BCS_EMPs','SF_EMPs','GAPS_EMP','ABS_GAPS_EMP'].sum().reset_index()
+        df_hd_div = df_res.groupby(['Country (ID)', 'Company (Label)','RU' ])[['Total_EMP','BCS_EMPs','SF_EMPs','GAPS_EMP','ABS_GAPS_EMP']].sum().reset_index()
         df_hd_div['HD_GAP_RATE'] = df_hd_div.apply(lambda x: 0 if x['BCS_EMPs'] < 1 else round(x['ABS_GAPS_EMP'] / x['BCS_EMPs'],3), axis=1)
         df_hd_div.sort_values(by = ["ABS_GAPS_EMP"], ascending=[False], inplace=True)
         list_cc = list(set(df_res['Company (Label)'].tolist()))
@@ -794,7 +795,7 @@ class ApFactorData(object):
     def chk_mgr(self, df_data, df_writer, workbook,sheet_name,common_format):
         data_res = pd.DataFrame()
 
-        data_res = df_data.groupby(['DIV'])['Total_EMP', 'SM_Chck','IM_Chck', 'BP_Chck'].sum().reset_index()
+        data_res = df_data.groupby(['DIV'])[['Total_EMP', 'SM_Chck','IM_Chck', 'BP_Chck']].sum().reset_index()
 
         data_res['SM_GAP'] = data_res.apply((lambda x: self.get_gap(x['Total_EMP'],x['SM_Chck'])), axis=1)
         data_res['IM_GAP'] = data_res.apply((lambda x: self.get_gap(x['Total_EMP'],x['IM_Chck'])), axis=1)
@@ -851,7 +852,7 @@ class ApFactorData(object):
     def check_date_match(self, df_data, df_writer, workbook,sheet_name,common_format):
         data_res = pd.DataFrame()
 
-        data_res = df_data.groupby(['DIV'])['Total_EMP', 'DATE_CHK'].sum().reset_index()
+        data_res = df_data.groupby(['DIV'])[['Total_EMP', 'DATE_CHK']].sum().reset_index()
 
         data_res['MISS_MATCH_RATE'] = data_res.apply((lambda x: (x['DATE_CHK']/x['Total_EMP'])), axis=1)
 
@@ -901,7 +902,7 @@ class ApFactorData(object):
     def check_s_date_match(self, df_data, df_writer, workbook,sheet_name,common_format):
         data_res = pd.DataFrame()
 
-        data_res = df_data.groupby(['DIV'])['Total_EMP', 'Seniority_DATE_CHK'].sum().reset_index()
+        data_res = df_data.groupby(['DIV'])[['Total_EMP', 'Seniority_DATE_CHK']].sum().reset_index()
 
         data_res['MISS_MATCH_RATE'] = data_res.apply((lambda x: (x['Seniority_DATE_CHK']/x['Total_EMP'])), axis=1)
 
@@ -1014,7 +1015,14 @@ class ApFactorData(object):
                 sheet_name = '10_HD'
                 df_pt_hd.to_excel(df_writer, sheet_name=sheet_name, encoding="utf-8", index=False)
                 worksheet = df_writer.sheets[sheet_name]
-                worksheet.set_column("F:F", cell_format=self.common_format)
+                x,y = df_pt_hd.shape
+                if y == 7:
+                    columns = 'G:G'
+                elif y ==8:
+                    columns = 'H:H'
+                else:
+                    columns = 'N:N'
+                worksheet.set_column(columns, cell_format=self.common_format)
 
                 df_pt_sm = df_sm[df_sm[field] == lv_value]
                 if not df_pt_sm.empty:
@@ -1114,9 +1122,9 @@ class ApFactorData(object):
         list_admin = list(set(df_data['Admin Group (ID)'].tolist()))
 
         # All
-        df_simple = df_data.groupby(['Country (ID)', 'Company (Label)', 'RU'])[
+        df_simple = df_data.groupby(['Country (ID)', 'Company (Label)', 'RU'])[[
             'Total_EMP','EETotal', 'EEDirect', 'EEIndirect', 'External', 'Intern', 'Apprentices', 'VacationWorker', 'SM_Chck','IM_Chck','BP_Chck',
-            'Job_Chck','Cost_Chck','Normal_age', 'Citizenship', 'NationalID_CHK','DATE_CHK','Seniority_DATE_CHK','EMAIL_ZID_CHK','ID_email_check','AgeLess18','email_check','ZID_check',].sum().reset_index()
+            'Job_Chck','Cost_Chck','Normal_age', 'Citizenship', 'NationalID_CHK','DATE_CHK','Seniority_DATE_CHK','EMAIL_ZID_CHK','ID_email_check','AgeLess18','email_check','ZID_check']].sum().reset_index()
 
         df_simple['Country'] = df_simple.apply(lambda x: self.check_cnt(x['Country (ID)']), axis=1)
 
@@ -1157,26 +1165,26 @@ class ApFactorData(object):
         list_cc = list(set(df_res['Company (Label)'].tolist()))
         # print(list_cc)
 
-        df_res2 = df_res.groupby(['Country', 'Country (ID)', 'DIV' , 'RU' ])[
+        df_res2 = df_res.groupby(['Country', 'Country (ID)', 'DIV' , 'RU' ])[[
             'Total_EMP','EETotal','EEIndirect','email_check','ZID_check','SM_Chck','IM_Chck','BP_Chck',
             'Job_Chck', 'Cost_Chck', 'Normal_age', 'Citizenship', 'NationalID_CHK',
             'ID_email_check', 'SM_GAP','IM_GAP','BP_GAP', 'AgeLess18',
              'DATE_CHK','Seniority_DATE_CHK','EMAIL_ZID_CHK','BCS_EMPs','SF_EMPs','BCS_Others','SF_Others',
-            'GAPS_EMP','ABS_GAPS_EMP','GAPS_OTHERS','ABS_GAPS_OTHERS'].sum().reset_index()
+            'GAPS_EMP','ABS_GAPS_EMP','GAPS_OTHERS','ABS_GAPS_OTHERS']].sum().reset_index()
 
-        df_res3 = df_res.groupby(['Country', 'Country (ID)', 'DIV' , 'Company (Label)','RU' ])[
+        df_res3 = df_res.groupby(['Country', 'Country (ID)', 'DIV' , 'Company (Label)','RU' ])[[
             'Total_EMP','EETotal','EEIndirect','email_check','ZID_check','SM_Chck','IM_Chck','BP_Chck',
             'Job_Chck', 'Cost_Chck', 'Normal_age', 'Citizenship', 'NationalID_CHK',
             'BCS_EMPs','SF_EMPs','GAPS_EMP','ABS_GAPS_EMP',
-            'BCS_Others','SF_Others','GAPS_OTHERS','ABS_GAPS_OTHERS'].sum()
+            'BCS_Others','SF_Others','GAPS_OTHERS','ABS_GAPS_OTHERS']].sum()
         df_res3.reset_index(inplace=True)
 
 
         # df_res2_group = df_res2.getgroup
-        df_RU_res = df_res.groupby(['Country (ID)', 'Company (Label)','DIV' , 'RU'])['Total_EMP'].sum().reset_index()
+        df_RU_res = df_res.groupby(['Country (ID)', 'Company (Label)','DIV' , 'RU'])[['Total_EMP']].sum().reset_index()
         df_RU_res.sort_values(by = ['Country (ID)','Company (Label)','DIV',"Total_EMP"], ascending=[True,True,True,False],inplace=True)
 
-        df_headcount = df_res.groupby(['Country (ID)', 'Company (Label)','DIV' , 'RU'])['Total_EMP','BCS_EMPs','SF_EMPs','GAPS_EMP','ABS_GAPS_EMP'].sum().reset_index()
+        df_headcount = df_res.groupby(['Country (ID)', 'Company (Label)','DIV' , 'RU'])[['Total_EMP','BCS_EMPs','SF_EMPs','GAPS_EMP','ABS_GAPS_EMP']].sum().reset_index()
         df_headcount['HD_GAP_RATE'] = df_headcount.apply(lambda x: 0 if x['BCS_EMPs'] < 1 else round(x['ABS_GAPS_EMP'] / x['BCS_EMPs'],3), axis=1)
         df_headcount.sort_values(by = ["ABS_GAPS_EMP"], ascending=[False], inplace=True)
 

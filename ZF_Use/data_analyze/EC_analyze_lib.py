@@ -54,6 +54,28 @@ def update_date(date1, date2):
             return pd.to_datetime(date2)
 
 
+def get_service_year_termination(l_date, l_end):
+    try:
+        if pd.isna(l_date):
+            return ''
+        if pd.isna(l_end):
+            return ''
+        if isinstance (l_date, datetime) and isinstance(l_end, datetime):
+            l_date_day = pd.to_datetime(l_date)
+            l_end_day = pd.to_datetime(l_end)
+            # year = l_end.year - l_date_day.year - ((l_end.month, l_end.day) < (l_date_day.month, l_date_day.day))
+            lv_months = (l_end_day.year - l_date_day.year) * 12 + \
+                         l_end_day.month - l_date_day.month + round((l_end_day.day - l_date_day.day + 1) / 31,2)
+                         # l_end_day.month - l_date_day.month + round((l_end_day.day - l_date_day.day + 1) / pd.Period(pd.Timestamp(l_date_day)).days_in_month,2)
+
+            return lv_months
+        else:
+            return 0
+    except Exception as e:
+        print('Calculate service month failed:', l_date,e)
+        return 'NoDate'
+
+
 def get_year(l_date):
     try:
         if pd.isna(l_date):

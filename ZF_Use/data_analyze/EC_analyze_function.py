@@ -5,7 +5,8 @@
 """
 import pandas as pd
 
-format=lambda x:"%.2f"%x
+# format=lambda x:"%.2f"%x
+format=lambda x:"{:.2f}".format(x)
 
 class AnalyzeObj(object):
     def __init__(self,file_res):
@@ -136,14 +137,14 @@ class AnalyzeObj(object):
             # Admin group
             self.row_num = self.row_num + 10
             df3 = df_data.groupby(['Country','Division','Admin Group (ID)'])[lv_fieldname].count().reset_index()
-            pivot_df1 = pd.pivot_table(df3,index=['Division'], values=['Count'],aggfunc='mean')
+            pivot_df1 = pd.pivot_table(df3,index=['Division'], values=['Count'],aggfunc='mean').sort_values('Count',ascending=False)
             pivot_df1['Count'] = pivot_df1['Count'].map(format)
             pivot_df1 = pivot_df1.rename(columns={'Count':'AveragePerAdmin'})
 
             pivot_df1.to_excel(self.df_writer, sheet_name=sheet_name, encoding="utf-8",
                                startrow=self.row_num,startcol=1)
             self.row_num = self.row_num + 20
-            pivot_df1 = pd.pivot_table(df3,index=['Country'], values=['Count'],aggfunc='mean',margins=True)
+            pivot_df1 = pd.pivot_table(df3,index=['Country'], values=['Count'],aggfunc='mean').sort_values('Count',ascending=False)
             pivot_df1['Count'] = pivot_df1['Count'].map(format)
             pivot_df1 = pivot_df1.rename(columns={'Count':'AveragePerAdmin'})
             pivot_df1.to_excel(self.df_writer, sheet_name=sheet_name, encoding="utf-8",

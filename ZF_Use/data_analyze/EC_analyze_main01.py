@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 @author: Z659190
+Input Source: Employee basic data with inactive data / RU and division mapping table
+
 人力资源数据分析尝试
 包括静态数据 / 时间相关静态数据 / 增量存量趋势数据 / HR相关数据分析
 
@@ -23,15 +25,17 @@ class FactorAnalyze(object):
                         'PH': 'PHL', 'SG': 'SGP', 'TW': 'TWN', 'TH': 'THA', 'AE': 'ARE', 'VN': 'VNM'}
         self.division = ['A', 'B', 'C', 'E', 'I', 'P', 'R', 'T', 'U', 'Z', 'W']
         self.root = 'c:/temp/new_try/'
-        # self.emp_file = 'EmployeeBasicInfo_AP_With_Inactive-20201031 - Copy1.xlsx'
-        self.emp_file = 'EmployeeBasicInfo_AP_With_Inactive-20201031.xlsx'
-        self.bcs_file = 'Global_DIV_RU.xlsx'
+        # self.emp_file = 'EmployeeBasicInfo_AP_With_Inactive-20210131 - Global.xlsx'
+        # self.emp_file = 'EmployeeBasicInfo_AP_With_Inactive-20201231.xlsx'
+        self.emp_file = 'EmployeeBasicInfo_AP_With_Inactive-20210131 - Global.xlsx'
+        # self.emp_file = 'EmployeeBasicInfo_AP_With_Inactive-20201231 - Copy.xlsx'
+        # self.bcs_file = 'Global_DIV_RU.xlsx'
+        self.bcs_file = 'Global_DIV_RU_20210208.xlsx'
         self.emp_data = pd.DataFrame()
         self.bcs_data = pd.DataFrame()
         self.merge_data = pd.DataFrame()
         self.now_date = date.today().strftime("%Y%m%d")
         self.result = defaultdict(dict)
-
 
     # get map between RU and divisions
     def get_bcs_data(self):
@@ -39,7 +43,7 @@ class FactorAnalyze(object):
         try:
             self.bcs_data = pd.DataFrame(pd.read_excel(io=bcs_file, sheet_name='Sheet1', header=0, skiprows=0))
             print('bcs data', self.bcs_data.head(2))
-            self.bcs_data.drop(columns=['Nothing'], inplace=True)
+            # self.bcs_data.drop(columns=['Nothing'], inplace=True)
             self.bcs_data = self.bcs_data[self.bcs_data["Country"] != ""]
             self.bcs_data.drop_duplicates(keep='first', inplace=True)
             # print(df.columns)
@@ -104,6 +108,7 @@ class FactorAnalyze(object):
             self.merge_data['JF'] = self.merge_data.apply(lambda x: x['Job Classification (Job Code)'][0:2], axis=1)
             self.merge_data['ServiceYear'] = self.merge_data.apply(lambda x: el.get_service_year(x['NewH']), axis=1)
             self.merge_data['Age'] = self.merge_data.apply(lambda x: el.get_age_range(x['Date Of Birth']), axis=1)
+            self.merge_data['ServiceMonths'] = self.merge_data.apply(lambda x: el.get_service_year_termination(x['NewH'],x['NewT']), axis=1)
         except Exception as e:
             print('Static Data Exception:', e)
 

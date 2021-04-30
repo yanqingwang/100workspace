@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 This is a script to read files and updated as pdf files.
+it's based on v0.1 and changed to OO method
 """
 
 from datetime import date
@@ -9,12 +10,11 @@ import datetime
 import pandas as pd
 import xlsxwriter
 import os
-# import PyPDF4
 
 from win32com.client import gencache, DispatchEx
 
 def get_path():
-    return 'c:/Users/z659190/Documents/10 Work/10 MyHRSuit/10 Project/131 learning/30_Workpackages/37 Data migration/'
+    return 'c:/temp/learning/'
 
 
 def set_columns():
@@ -36,10 +36,12 @@ def get_string(l_value):
 def read_file():
     df_data_tmp = pd.DataFrame()
     df_data = pd.DataFrame()
-    file_path = get_path() + '2nd Submission/'
+    # file_path = get_path() + '2nd Submission/'
+    file_path = get_path()
     filenames = os.listdir(file_path )
     for fname in filenames:
-        if fname.startswith('Learning'):
+        # if fname.startswith('Learning'):
+        if fname.endswith('.xlsx'):
         # if fname.startswith('test'):
             try:
                 f_name = file_path + fname
@@ -50,7 +52,8 @@ def read_file():
                 #     df_data = pd.DataFrame(pd.read_excel(io=fname, sheet_name=l_sheet, header=0, skiprows=0))
                 # print(sheet_to_df_map.keys())
                 for key in sheet_to_df_map.keys():
-                    if not key in ['Notes', 'Format- various systems', 'Questions']:
+                    # if not key in ['Notes', 'Format- various systems', 'Questions']:
+                    if key in ['Templates']:
                         df_data_tmp = sheet_to_df_map[key]
                         df_data_tmp.columns = set_columns()
                         print(fname,df_data_tmp.shape)
@@ -62,8 +65,8 @@ def read_file():
                 print('read file failed:', fname)
                 print('error log', e)
     df_data['Global ID'] = df_data['Global ID'].apply(str)
-    print(df_data.columns)
-    print(df_data.shape)
+    print('Total data',df_data.columns)
+    print('Total data',df_data.shape)
     return df_data.fillna("")
 
 
@@ -72,12 +75,12 @@ def read_employee_file():
     df_ee_list = pd.DataFrame()
     try:
 
-        f_name2 = get_path() + '\EmployeeHeadcount-Page1-20191231.xlsx'
+        f_name2 = get_path() + 'empdata/ChinaEmployeeBasicInfov2-Page1-20201231.xlsx'
         df_ee_list = pd.read_excel(f_name2, sheet_name='Excel Output', dtype = {'ZF Global ID':str}, parse_dates=False,skiprows=2)
         # print(df_ee_list.columns)
         df_ee_list['ZF Global ID'] = df_ee_list['ZF Global ID'].apply(str)
 
-        df_ee = df_ee_list[['ZF Global ID','First Name','Last Name','Company (Legal Entity ID)','Company (Label)','Reporting Unit (Reporting Unit ID)','Employment Type (Label)','External Agency & Contingent Worker']]
+        df_ee = df_ee_list[['ZF Global ID','First Name','Last Name','Company (Legal Entity ID)','Company (Label)','Reporting Unit (Reporting Unit ID)','Employment Type (Label)','Contingent Worker (External Code)']]
         # print(df_ee.columns)
 
         return  df_ee.fillna("")
@@ -114,7 +117,7 @@ def gen_pdf_from_xlsx(df_data,df_employee):
 
     df_data.drop(["FileName"],axis = 1,inplace=True)
 
-    path = 'C:/temp/pdf/'
+    path = get_path() + 'wave2/'
     list_columns = ['^UserId','documents','DocName','attachment','lastMod']
     df_list = pd.DataFrame(columns=list_columns)
     df_error_list = pd.DataFrame()
@@ -137,6 +140,7 @@ def gen_pdf_from_xlsx(df_data,df_employee):
         lf_ee = df_employee[df_employee['ZF Global ID'] == gid]
         if not lf_ee.empty:
             l_employee = pd.Series(lf_ee.iloc[0])
+            l_name = l_employee['First Name'] + '_' +l_employee['Last Name']
             df_temp = df_data[df_data['Global ID'] == gid]
             if not df_temp.empty:       # this will never be false, since the GID is from the table
                 # try:
@@ -148,7 +152,7 @@ def gen_pdf_from_xlsx(df_data,df_employee):
 
                 try:
                     # file_name = 'LearningHistory_' + str(l_employee['Company (Legal Entity ID)']) + '_' + str(l_employee['Reporting Unit (Reporting Unit ID)'])  + '_' + str(gid)
-                    file_name = 'LearningHistory_' + str(gid)
+                    file_name = 'LearningHistory_China_' + str(gid)
                     filename = path + 'xlsx/' + file_name + '.xlsx'
                     # 创建一个excel
                     df_writer = pd.ExcelWriter(filename, engine='xlsxwriter',date_format='yyyy-mm-dd')
@@ -168,8 +172,9 @@ def gen_pdf_from_xlsx(df_data,df_employee):
 
                     # Write the column headers with the defined format.
                     for col_num, value in enumerate(df_temp.columns.values):
-                        worksheet.write(0, col_num, value)
-                    worksheet.set_row(0,height=None,cell_format=header_format)
+                        # worksheet.write(0, col_num, value)
+                        worksheet.write(0, col_num, value,header_format)
+                    # worksheet.set_row(0,height=None,cell_format=header_format)
                     worksheet.set_column("C:C",15, cell_format=common_format)
                     worksheet.set_column("A:A",9, cell_format=common_format)
                     worksheet.set_column("B:B",10, cell_format=common_format)
@@ -197,34 +202,57 @@ def gen_pdf_from_xlsx(df_data,df_employee):
                     # worksheet.print_area(0,0,x-1,y-1)
                     worksheet.fit_to_pages(1,0)     #width, hight
                     worksheet.set_landscape()       #worksheet.set_portrait()
-                    workbook.close()
                     df_writer.save()
+                    workbook.close()
                     df_writer.close()
                 except Exception as e:
                     print('write excel file failed:', filename)
                     print('error log', e)
                     emp_line = ['Global ID', gid, 'Write Excel']
                     df_error_list = df_error_list.append (pd.Series(emp_line),ignore_index = True)
+                finally:
+                    df_writer.save()
+                    workbook.close()
+                    df_writer.close()
 
-                try:
-                    file_pdf_name =  file_name + '.pdf'
-                    file_pdf = path + 'pdfs/' + file_pdf_name
-                    if os.access(file_pdf, os.F_OK):
-                        os.remove(file_pdf)
-                    books = xlApp.Workbooks.Open(filename, False)
-                    books.ExportAsFixedFormat(0, file_pdf)  #0 is pdf,1 is xps
-                    books.Close(False)
-                    print('Save PDF Files：', file_pdf)
+                time.sleep(1)
+                if os.access(filename, os.F_OK):  #excel 文件存在后，才可以生成PDF
+                    try:
+                        file_pdf_name = file_name + '.pdf'
+                        file_pdf = path + 'pdfs/' + file_pdf_name
+                        if os.access(file_pdf, os.F_OK):
+                            os.remove(file_pdf)
+                        books = xlApp.Workbooks.Open(filename, False)
+                        books.ExportAsFixedFormat(0, file_pdf)  #0 is pdf,1 is xps
+                        # books.Close(False)
+                        books.Close(True)
+                        # xlApp.Quit()
 
-                    # emp_line = [gid,'documents',l_employee['First Name'] + '_' + l_employee['Last Name']+'_'+str(gid),file_pdf_name,'1/1/2019']
-                    emp_line = [gid,'documents','LearningHistory_'+l_employee['First Name'] + '_' + l_employee['Last Name']+'_'+str(gid),file_pdf_name,'1/1/2020']
-                    df_list = df_list.append(pd.Series(emp_line,index=list_columns),ignore_index = True)
+                        print('Save PDF Files：', file_pdf)
 
-                except Exception as e:
-                    print('Get PDF file failed:', file_pdf_name)
-                    print('error log', e)
-                    emp_line = ['Global ID', gid, 'Convert to PDF']
+                        # emp_line = [gid,'documents',l_employee['First Name'] + '_' + l_employee['Last Name']+'_'+str(gid),file_pdf_name,'1/1/2019']
+                        # emp_line = [gid,'documents','LearningHistory_'+l_employee['First Name'] + '_' + l_employee['Last Name']+'_'+str(gid),file_pdf_name,'1/1/2021']
+                        # emp_line = [gid,'documents','LearningHistory_China_'+'_'+str(gid),file_pdf_name,'1/1/2021']
+                        emp_line = [gid,'documents',l_name,file_pdf_name,'01/01/2021']
+                        df_list = df_list.append(pd.Series(emp_line,index=list_columns),ignore_index = True)
+
+                    except Exception as e:
+                        print('Get PDF file failed:', file_pdf_name)
+                        print('error log', e)
+                        emp_line = ['Global ID', gid, 'Convert to PDF']
+                        df_error_list = df_error_list.append (pd.Series(emp_line),ignore_index = True)
+                        xlApp.Quit()
+                        xlApp = DispatchEx("Excel.Application")
+                        xlApp.Visible = False
+                        xlApp.DisplayAlerts = 0
+                    # finally:
+                    #     books.close(True)
+                    #     xlApp.Quit()
+                else:
+                    print('Excel File Not found ',filename)
+                    emp_line = ['Global ID', gid, 'Excel File Not Found']
                     df_error_list = df_error_list.append (pd.Series(emp_line),ignore_index = True)
+
 
                 # # just test, encrypt the pdf files
                 # try:
@@ -250,13 +278,13 @@ def gen_pdf_from_xlsx(df_data,df_employee):
             df_error_list = df_error_list.append (pd.Series(emp_line),ignore_index = True)
 
     xlApp.Quit()
-    file_list = path + 'Output_' +  '_backgroundtemplate_zffriedric.xlsx'
+    file_list = path + 'Output_' + '_backgroundtemplate_zffriedric.xlsx'
     output_data(df_list, file_list)
-    file_csv = path + 'Output_' +  '_backgroundtemplate_zffriedric.csv'
-    df_list.to_csv(file_csv, sep = ',',encoding='UTF-8',index=False)
+    file_csv = path + 'Output_' + '_backgroundtemplate_zffriedric.csv'
+    df_list.to_csv(file_csv, sep=',',encoding='UTF-8',index=False)
 
-    file_csv = path + 'Output_' +  'Error_list.csv'
-    df_error_list.to_csv(file_csv, sep = ',',encoding='UTF-8',index=False)
+    file_csv = path + 'Output_' + 'Error_list.csv'
+    df_error_list.to_csv(file_csv, sep=',',encoding='UTF-8',index=False)
 
 
 
@@ -264,7 +292,7 @@ if __name__ == '__main__':
     df_data = pd.DataFrame()
     df_employee = pd.DataFrame()
     now_date = date.today().strftime("%Y%m%d")
-    file_out_with_path = get_path()  + '2nd Submission/' + 'Output_' + now_date + '_Learning_history_data.xlsx'
+    file_out_with_path = get_path() + 'wave2/all/' + 'Output_' + now_date + '_Learning_history_data.xlsx'
 
     time1 = time.time()
 

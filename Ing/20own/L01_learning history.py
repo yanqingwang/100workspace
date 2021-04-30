@@ -13,9 +13,15 @@ import os
 
 from win32com.client import gencache, DispatchEx
 
+
+def get_path():
+    return 'c:/temp/learning/'
+
+
 def prepare_path():
-    print(os.path.abspath('..'))
-    root = os.path.abspath('..') + '/testdata/learning/'
+    # print(os.path.abspath('..'))
+    # root = os.path.abspath('..') + '/learning/'
+    root = get_path()
     if not os.path.exists(root):
         os.mkdir(root)
     tmp_path = root + 'rs'
@@ -23,14 +29,17 @@ def prepare_path():
         os.mkdir(tmp_path)
 
 
-def get_path():
-    root = os.path.abspath('..') + '/testdata/learning/'
-    print(root)
-    return  root
+# def get_path():
+#     # root = os.path.abspath('..') + '/testdata/learning/'
+#     root = get_root() + 'learning/'
+#     print(root)
+#     return root
+
 
 def set_columns():
     return ['Global ID','Local ID', 'Learner Name', 'Item/ Program Name','Training Hours','Traing Type','Start Date','End Date',
                            'Completion date for eLearnings','Expiration Date for Certifications','Vendor/ Instructor','Comments/ Remarks']
+
 
 def get_str_date(l_date):
     try:
@@ -49,7 +58,9 @@ def read_file():
     filenames = listdir(get_path())
     for fname in filenames:
         # if fname.startswith('p'):
-        if fname.startswith('Con'):
+        # if fname.startswith('Con'):
+        if fname.endswith('.xlsx'):
+            print(fname)
             try:
                 f_name = get_path() + fname
                 sheet_to_df_map = pd.read_excel(f_name, sheet_name=None, skip_blank_lines=True, parse_dates=False)
@@ -62,8 +73,9 @@ def read_file():
                     if not key in ['Notes', 'Format- various systems', 'Questions']:
                         df_data_tmp = sheet_to_df_map[key]
                         df_data_tmp.columns = set_columns()
-                        df_data_tmp = df_data_tmp.append(df_data_tmp, sort=False)
-                print(df_data_tmp.head())
+                        df_data = df_data.append(df_data_tmp, sort=False)
+                        print('Total',df_data.shape,'data volumns',df_data_tmp.shape)
+                # print(df_data_tmp.head())
 
             except Exception as e:
                 print('read file failed:', fname)

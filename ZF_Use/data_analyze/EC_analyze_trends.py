@@ -4,13 +4,20 @@
 静态数据展示显示处理 --- 过去一段时间在职人数、新入职人数、离职人数
 """
 import pandas as pd
+# from collections import defaultdict
 # import numpy as np
 
+country = ["AU", "CN", 'ID', 'JP', 'KR', 'MY','PH', 'SG', 'TW', 'TH', 'AE', 'VN','IN',
+           'DE','SK','BR','MX','HU','US','GB','CZ','RS','AT','FR','TR','ES','IT','CA',
+           'ZA','PL','SE','RO','NL','PT','AR','RU','BE','CH','DK','HK',]
 low_date = '2020-01-01'
-high_date = '2020-12-31'
+high_date = '2021-03-31'
 date_range = pd.period_range(low_date, high_date, freq='M')
 
+format_p=lambda x:"{:.2%}".format(x)
+
 class AnalyzeTimeObj(object):
+    # self.country = defaultdict(dict)
     def __init__(self,file_res):
         try:
             self.df_writer = pd.ExcelWriter(file_res, engine='xlsxwriter')
@@ -75,7 +82,6 @@ class AnalyzeTimeObj(object):
         try:
             # 创建一个excel
             # gender
-
             sheet_name = prefix+'00_traw'
             df_data.to_excel(self.df_writer, sheet_name=sheet_name, encoding="utf-8", index=False)
 
@@ -97,12 +103,12 @@ class AnalyzeTimeObj(object):
 
             lv_row = lv_row + 20
             pivot_df1 = pd.pivot_table(df1,index=['Division'],columns=['NewHP'],
-                                       values=[lv_fieldname],aggfunc='count').reset_index()
+                                       values=[lv_fieldname],aggfunc='count',margins=True).reset_index()
             pivot_df1.to_excel(self.df_writer, sheet_name=sheet_name, encoding="utf-8",startrow=lv_row)
 
             lv_row = lv_row + 20
             pivot_df1 = pd.pivot_table(df1,index=['Employee Class (Label)'],columns=['NewHP'],
-                                       values=[lv_fieldname],aggfunc='count').reset_index()
+                                       values=[lv_fieldname],aggfunc='count',margins=True).reset_index()
             pivot_df1.to_excel(self.df_writer, sheet_name=sheet_name, encoding="utf-8",startrow=lv_row)
 
             lv_row = lv_row + 10
@@ -126,7 +132,7 @@ class AnalyzeTimeObj(object):
 
             lv_row = lv_row + 20
             pivot_df1 = pd.pivot_table(df2,index=['Division'],columns=['NewTP'],
-                                       values=[lv_fieldname],aggfunc='count').reset_index()
+                                       values=[lv_fieldname],aggfunc='count',margins=True).reset_index()
             pivot_df1.to_excel(self.df_writer, sheet_name=sheet_name, encoding="utf-8",startrow=lv_row)
 
             lv_row = lv_row + 20
@@ -136,7 +142,7 @@ class AnalyzeTimeObj(object):
 
             lv_row = lv_row + 10
             pivot_df1 = pd.pivot_table(df2,index=['Employment Type (Label)'],columns=['NewTP'],
-                                       values=[lv_fieldname],aggfunc='count').reset_index()
+                                       values=[lv_fieldname],aggfunc='count',margins=True).reset_index()
             pivot_df1.to_excel(self.df_writer, sheet_name=sheet_name, encoding="utf-8",startrow=lv_row)
 
             sheet_name = prefix+'30_combine'
@@ -153,6 +159,7 @@ class AnalyzeTimeObj(object):
     def out_period_res(self,df_data,prefix):
 
         df_res_local = pd.DataFrame()
+        df_res_local2 = pd.DataFrame()
         for month in date_range:
             line = {}
             try:
@@ -164,8 +171,9 @@ class AnalyzeTimeObj(object):
                                                              # (df_data['NewTP'].isna())].index)
                 line['NewHire'] = len(df_data.loc[(df_data['NewHP'] == month)].index)
                 line['Termination'] = len(df_data.loc[(df_data['NewTP'] == month)].index)
+                line['NT'] = len(df_data.loc[(df_data['NewTP'] == month) & (df_data['NewHP'] == month)].index)
                 df_res_local = df_res_local.append(pd.Series(line), ignore_index=True)
-                df_res_local = df_res_local[['Month','Active_total','NewHire','Termination']]
+                df_res_local = df_res_local[['Month','Active_total','NewHire','Termination','NT']]
 
             except Exception as e:
                 print('Count Data Exception:', e)
@@ -187,7 +195,41 @@ class AnalyzeTimeObj(object):
             df_res_local['New_CHG'] = df_res_local.NewHire.diff()
             df_res_local['Term_CHG'] = df_res_local.Termination.diff()
 
+            df_res_local['Active_CHGR'] = df_res_local.Active_total.pct_change().map(format_p)
+            # df_res_local['New_CHGR'] = df_res_local.NewHire.pct_change().map(format_p)
+            # df_res_local['Term_CHGR'] = df_res_local.Termination.pct_change().map(format_p)
+
+            # 环比
+            # df_res_local['Active_CHGQR'] = df_res_local.Active_total.diff(12).fillna(0,inplace=True)
+
             self.create_column_chart(df_res_local, sheet_name, 'Change Trends.', 1)
+
+            line2 = {}
+            for month in date_range:
+                try:
+                    for cnt in country:
+                        # line2['Month'] = month
+                        line2['Month'] = month
+                        # line2['Country'] = cnt
+                        # last_day = month.to_timestamp(how='end')
+                        # print(last_day)
+                        line2[cnt] = len(df_data.loc[(df_data['Country'] == cnt)&(df_data['NewHP'] <= month) &
+                                                               ((df_data['NewTP'] > month) | (
+                                                                   df_data['NewTP'].isna()))].index)
+                        # (df_data['NewTP'].isna())].index)
+                    # df_res_local2.set_index('Country',inplace=True)
+                    df_res_local2 = df_res_local2.append(pd.Series(line2), ignore_index=True)
+
+                except Exception as e:
+                    print('Count Data Exception:', e)
+
+            list_col = []
+            list_col.append('Month')
+            for cnt in country:
+                list_col.append(str(cnt))
+            df_res_local2 = df_res_local2[list_col]
+
+            self.create_column_chart(df_res_local2, sheet_name, 'Headcount Trends.', 1)
 
         except Exception as e:
             print('Get active period data file failed:', sheet_name)
@@ -196,7 +238,8 @@ class AnalyzeTimeObj(object):
             pass
 
     def main(self,df_data):
-        df_res = df_data.loc[(df_data['Employee Status (Label)'] != 'Dormant') & (df_data['Employee Status (Label)'] != 'Discarded') ]
+        # df_res = df_data.loc[(df_data['Employee Status (Label)'] != 'Dormant') & (df_data['Employee Status (Label)'] != 'Discarded') ]
+        df_res = df_data.loc[(df_data['Employee Status (Label)'] == 'Dormant') | (df_data['Employee Status (Label)'] != 'Discarded') ]
         self.out_yearly_analyze(df_res,'AP')
         self.out_period_res(df_res,'AP')
 
